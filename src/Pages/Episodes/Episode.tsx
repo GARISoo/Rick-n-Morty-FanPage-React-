@@ -1,76 +1,80 @@
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CharacterProps, getCharacters } from '../../Data/CharacterData/characters';
-import { EpisodeProps, getEpisode, getCopyEp } from '../../Data/EpisodeData/episodes';
+import PrevNextButtons from '../../Components/Buttons/PrevNextButtons';
+import Loader from '../../Components/Loader/Loader';
+import { EpisodeProps, getImages } from '../../Data/EpisodeData/episodes';
 
 const Episode = () => {
-  const [visibleChars, setVisibleChars] = useState<CharacterProps[]>();
   const [currentEp, setCurrentEp] = useState<EpisodeProps>();
-  const [currentCopyEp, setCurrentCopyEp] = useState<EpisodeProps>();
   const { id } = useParams();
+  const [nextEp, setNextEp] = useState(Number(id));
+  const [isLoading, setIsLoading] = useState<Boolean>(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const episode = getEpisode(Number(id));
-    const copyEp = getCopyEp(Number(id));
-    window.scrollTo(0, 0);
-    if (episode) {
-      setCurrentEp(episode);
-      setCurrentCopyEp(copyEp);
-    } else {
-      navigate('/episodes');
+  const getEp = async () => {
+    setIsLoading(true);
+    try {
+      const ep = await axios.get(`https://rickandmortyapi.com/api/episode/${id}`);
+      setCurrentEp(ep.data);
+    } catch (error) {
+      navigate('/404');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const getNextEp = async (num: number) => {
+    setIsLoading(true);
+    try {
+      const ep = await axios.get(`https://rickandmortyapi.com/api/episode/${num}`);
+      setCurrentEp(ep.data);
+    } catch (error) {
+      navigate('/404');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    getEp();
   }, []);
 
   useEffect(() => {
-    const characters = getCharacters();
-    setVisibleChars(characters);
-  }, []);
+    if (nextEp !== Number(id)) {
+      navigate(`/episodes/${nextEp}`);
+      getNextEp(nextEp);
+    }
+  }, [nextEp]);
 
   return (
-    <div className="episode-page">
-
-      <div className="episode__title">
-        <span>{`Preview of ${currentEp?.name}`}</span>
-      </div>
-
-      <div className="episode__video">
-        <iframe
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="ep__video"
-          src={currentEp?.video}
+    isLoading ? <Loader /> : (
+      <div className="episode-page">
+        <PrevNextButtons
+          backFunction={() => navigate('/episodes')}
+          nextFunction={() => setNextEp(nextEp + 1)}
+          prevFunction={() => Number(id) !== 1 && setNextEp(nextEp - 1)}
         />
-      </div>
-
-      <div className="episode__appearance">
-        <span>{`Total of ${currentEp?.characters.length} characters appear in this episode`}</span>
-      </div>
-
-      <div>
-        <div className="episode__stars gap">
-          <span>Stars of The Episode:</span>
+        <div className="episode__title">
+          <span>{`Preview of ${currentEp?.name} (${currentEp?.episode})`}</span>
         </div>
-        <div className="cards">
-          {visibleChars && visibleChars.map((char) => (
-            currentCopyEp?.characters.includes(char.id) && (
-              <div className="card" key={id} onClick={() => navigate(`/characters/${char.id}`)}>
-                <div className="card__top">
-                  <img src={char.image} alt="selfie" className="card__img" />
-                </div>
-                <div className="card__bottom">
-                  <span className="card__name">{char.name}</span>
-                  <span className="card__species">{`Species: ${char.species}`}</span>
-                </div>
-              </div>
-            )
-          ))}
+        <div className="episode__video">
+          <iframe
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="ep__video"
+            src={getImages(currentEp && currentEp.id)?.video}
+          />
+        </div>
+
+        <div className="episode__appearance">
+          <span>{`Total of ${currentEp?.characters.length} characters appear in this episode`}</span>
         </div>
       </div>
-    </div>
-  );
+    ));
 };
 
 export default Episode;

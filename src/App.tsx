@@ -9,6 +9,7 @@ import Episode from './Pages/Episodes/Episode';
 import Characters from './Pages/Characters/Characters';
 import Character from './Pages/Characters/Character';
 import NotFound from './Pages/NotFound/NotFound';
+import Locations from './Pages/Locations/Locations';
 
 const App = () => (
   <Router>
@@ -18,6 +19,7 @@ const App = () => (
         <NavLink className="nav__link" to="/about">About</NavLink>
         <NavLink className="nav__link" to="/episodes">Episodes</NavLink>
         <NavLink className="nav__link" to="/characters">Characters</NavLink>
+        <NavLink className="nav__link" to="/locations">Locations</NavLink>
       </nav>
     </header>
     <Routes>
@@ -27,6 +29,7 @@ const App = () => (
       <Route path="/episodes/:id" element={<Episode />} />
       <Route path="/characters" element={<Characters />} />
       <Route path="/characters/:id" element={<Character />} />
+      <Route path="/locations" element={<Locations />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </Router>
