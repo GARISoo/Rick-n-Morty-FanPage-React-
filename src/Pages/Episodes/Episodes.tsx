@@ -2,26 +2,24 @@
 /* eslint-disable camelcase */
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Loader from '../../Components/Loader/Loader';
 import { EpisodeProps, getImages } from '../../Data/EpisodeData/episodes';
 
 const Episodes = () => {
-  const [allEpisodes, setAllEpisodes] = useState<EpisodeProps[]>();
   const [filteredEpisodes, setFilteredEpisodes] = useState<EpisodeProps[]>();
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState<Boolean>(true);
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const getEps = async () => {
+  const createArray = (start: number, end: number) => Array(Math.ceil(end - start)).fill(start).map((x, y) => x + y);
+
+  const getFilteredEps = async (eps: any) => {
     setIsLoading(true);
     try {
-      const response1 = await axios.get('https://rickandmortyapi.com/api/episode?page=1');
-      const response2 = await axios.get('https://rickandmortyapi.com/api/episode?page=2');
-      const response3 = await axios.get('https://rickandmortyapi.com/api/episode?page=3');
-      const response = [...response1.data.results, ...response2.data.results, ...response3.data.results];
-      setAllEpisodes(response);
-      setFilteredEpisodes(response);
+      const response = await axios.get(`https://rickandmortyapi.com/api/episode/${eps}`);
+      setFilteredEpisodes(response.data);
     } catch (error) {
       navigate('/404');
     } finally {
@@ -33,39 +31,56 @@ const Episodes = () => {
     {
       id: 0,
       name: 'All',
-      onClick: () => setFilteredEpisodes(allEpisodes),
+      onClick: () => {
+        setSearchParams({ season: 'all' });
+      },
     },
     {
       id: 1,
       name: 'Season 1',
-      onClick: () => setFilteredEpisodes(allEpisodes?.filter((ep) => ep.episode.includes('S01'))),
+      onClick: () => {
+        setSearchParams({ season: '1' });
+      },
     },
     {
       id: 2,
       name: 'Season 2',
-      onClick: () => setFilteredEpisodes(allEpisodes?.filter((ep) => ep.episode.includes('S02'))),
+      onClick: () => {
+        setSearchParams({ season: '2' });
+      },
     },
     {
       id: 3,
       name: 'Season 3',
-      onClick: () => setFilteredEpisodes(allEpisodes?.filter((ep) => ep.episode.includes('S03'))),
+      onClick: () => {
+        setSearchParams({ season: '3' });
+      },
     },
     {
       id: 4,
       name: 'Season 4',
-      onClick: () => setFilteredEpisodes(allEpisodes?.filter((ep) => ep.episode.includes('S04'))),
+      onClick: () => {
+        setSearchParams({ season: '4' });
+      },
     },
     {
       id: 5,
       name: 'Season 5',
-      onClick: () => setFilteredEpisodes(allEpisodes?.filter((ep) => ep.episode.includes('S05'))),
+      onClick: () => {
+        setSearchParams({ season: '5' });
+      },
     },
   ];
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    getEps();
-  }, []);
+    getFilteredEps('1,12,22,32,42');
+    if (searchParams.get('season') === 'all') getFilteredEps(createArray(1, 52));
+    if (searchParams.get('season') === '1') getFilteredEps(createArray(1, 12));
+    if (searchParams.get('season') === '2') getFilteredEps(createArray(12, 22));
+    if (searchParams.get('season') === '3') getFilteredEps(createArray(22, 32));
+    if (searchParams.get('season') === '4') getFilteredEps(createArray(32, 42));
+    if (searchParams.get('season') === '5') getFilteredEps(createArray(42, 52));
+  }, [searchParams]);
 
   return (
     isLoading ? <Loader /> : (

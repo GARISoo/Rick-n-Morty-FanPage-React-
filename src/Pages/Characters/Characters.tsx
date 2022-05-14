@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import PageSwitcher from '../../Components/Buttons/PageSwitcher';
 import Loader from '../../Components/Loader/Loader';
 import { CharacterProps } from '../../Data/CharacterData/characters';
@@ -11,6 +11,7 @@ const Characters = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<Number>();
   const [isLoading, setIsLoading] = useState<Boolean>(true);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const navigate = useNavigate();
 
@@ -27,10 +28,10 @@ const Characters = () => {
     }
   };
 
-  const requestFilteredChars = async (status: String) => {
+  const requestFilteredChars = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`https://rickandmortyapi.com/api/character/?status=${status}`);
+      const response = await axios.get(`https://rickandmortyapi.com/api/character/?${searchParams}`);
       setFilteredChars(response.data.results);
       setTotalPages(response.data.info.pages);
     } catch (error) {
@@ -41,8 +42,8 @@ const Characters = () => {
   };
 
   useEffect(() => {
-    requestFilteredChars('');
-  }, []);
+    requestFilteredChars();
+  }, [searchParams]);
 
   useEffect(() => {
     getNextPage(String(currentPage), String(filter));
@@ -55,7 +56,7 @@ const Characters = () => {
       onClick: () => {
         setCurrentPage(1);
         setFilter('');
-        requestFilteredChars('');
+        setSearchParams({});
       },
     },
     {
@@ -64,7 +65,7 @@ const Characters = () => {
       onClick: () => {
         setCurrentPage(1);
         setFilter('Alive');
-        requestFilteredChars('Alive');
+        setSearchParams({ status: 'alive' });
       },
     },
     {
@@ -73,7 +74,7 @@ const Characters = () => {
       onClick: () => {
         setCurrentPage(1);
         setFilter('Dead');
-        requestFilteredChars('Dead');
+        setSearchParams({ status: 'dead' });
       },
     },
     {
@@ -82,7 +83,7 @@ const Characters = () => {
       onClick: () => {
         setCurrentPage(1);
         setFilter('Unknown');
-        requestFilteredChars('Unknown');
+        setSearchParams({ status: 'unknown' });
       },
     },
   ];
@@ -112,7 +113,7 @@ const Characters = () => {
         currentPage={currentPage}
         prevPage={() => setCurrentPage(currentPage - 1)}
         nextPage={() => setCurrentPage(currentPage + 1)}
-        specificPage={() => setCurrentPage(currentPage)}
+        specificPage={() => currentPage}
         totalPages={totalPages}
       />
 
